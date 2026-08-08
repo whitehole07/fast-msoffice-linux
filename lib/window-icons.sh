@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Give each RemoteApp window a WM_CLASS matching the application it really is.
+# Make alt-tab show the right icon for each Office window.
 #
-#   ./lib/fix-window-class.sh [pid-to-follow]
+#   ./lib/window-icons.sh [pid-to-follow]
 #
 # Windows allows one RDP session per user, so opening a second Office app takes
 # over the first one's session and a single FreeRDP client ends up drawing every
@@ -10,8 +10,9 @@
 # overview show whichever application connected last for every window.
 #
 # The window titles are still correct, so this watches for RemoteApp windows and
-# rewrites the class from the title. Runs alongside a session and exits when the
-# process it was given goes away.
+# rewrites the class from the title, which is what the desktop matches on to
+# pick an icon. Runs alongside a session and exits when the process it was
+# given goes away.
 #
 set -euo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/env.sh"

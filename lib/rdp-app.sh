@@ -60,6 +60,6 @@ fi
 # One FreeRDP client can end up drawing several Office windows, all sharing a
 # single WM_CLASS, which leaves alt-tab showing one application's icon for all
 # of them. This watcher corrects each window from its title, and exits with us.
-"$PROJECT_DIR/lib/fix-window-class.sh" $$ >/dev/null 2>&1 &
+"$PROJECT_DIR/lib/window-icons.sh" $$ >/dev/null 2>&1 &
 
 rdp_run /app:program:"$APP",name:"$APP_NAME" /wm-class:"$APP_NAME" "$@"

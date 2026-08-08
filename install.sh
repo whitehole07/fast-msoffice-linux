@@ -53,7 +53,7 @@ else
     # Download the packages as a normal user and unpack them here rather than
     # installing them, so the host stays untouched.
     # xdotool is used to correct window classes so alt-tab shows the right
-    # icon per application; see lib/fix-window-class.sh.
+    # icon per application; see lib/window-icons.sh.
     ( cd "$TMP_RPM" && dnf download --resolve freerdp xdotool >/dev/null 2>&1 ) \
         || die "Could not download the freerdp packages"
     for r in "$TMP_RPM"/*.rpm; do
