@@ -233,10 +233,13 @@ automatically:
   falls back to a software rasterizer that is *slower* than plain drawing.
 - **virtio networking** — lower latency than emulated hardware.
 
-**The honest limit:** there is no GPU in the VM, so the desktop compositor
-renders on the CPU. Editing, scrolling and typing feel native; a slideshow with
-heavy transitions will not. Fixing that properly needs GPU passthrough, which
-means a second GPU — impractical on a laptop.
+With all of it applied, editing, scrolling, dragging objects and slide
+animations feel like a local application.
+
+There is no GPU in the VM, so the desktop compositor renders on the CPU. In
+practice that has not been the limit — the tuning above matters far more. If
+you ever do hit a ceiling on very heavy 3D content, the only real fix is GPU
+passthrough, which needs a second GPU.
 
 ---
 
