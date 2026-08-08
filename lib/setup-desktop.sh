@@ -14,7 +14,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/env.sh"
 
 APPS_DIR="${APPS_DIR:-$HOME/.local/share/applications}"
 QUIET=0
-[ "${1:-}" = "--quiet" ] && QUIET=1
+if [ "${1:-}" = "--quiet" ]; then QUIET=1; fi
 
 if [ "${1:-}" = "--remove" ]; then
     rm -f "$APPS_DIR"/m365-*.desktop

@@ -8,10 +8,8 @@ it stays completely invisible.
 Not a browser tab. Not a Windows desktop in a window. Not Wine.
 
 ```bash
-./install.sh          # prepare everything
-./vm.sh install   # Windows installs itself, unattended
-./finish-setup.sh     # icons, menu entries, faster networking
-./powerpoint.sh       # a real PowerPoint window
+./install.sh      # one command: installs Windows and Office, unattended
+./powerpoint.sh   # a real PowerPoint window
 ```
 
 ## Fast

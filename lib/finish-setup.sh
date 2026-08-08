@@ -9,7 +9,10 @@
 # faster virtio network card. Safe to re-run.
 #
 set -euo pipefail
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/env.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/env.sh"
+
+QUIET=0
+if [ "${1:-}" = "--quiet" ]; then QUIET=1; fi
 
 OFFICE='C:\Program Files\Microsoft Office\root\Office16'
 
@@ -72,10 +75,8 @@ fi
 
 touch "$VM_DIR/.installed"
 
-echo
-log "Setup complete."
-echo "     ./powerpoint.sh      ./excel.sh       or find them in your app menu"
-echo
-echo "  Sign in inside Excel or PowerPoint with your Microsoft 365 account to"
-echo "  activate Office. Choose 'No, sign in to this app only' if it offers to"
-echo "  manage your device - that avoids enrolling this VM in an organisation."
+if [ "$QUIET" -eq 0 ]; then
+    echo
+    log "Done. Launch Office with:"
+    echo "     ./powerpoint.sh      ./excel.sh"
+fi

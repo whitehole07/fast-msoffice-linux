@@ -15,7 +15,7 @@ set -euo pipefail
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/env.sh"
 
-STEP=0; TOTAL=8
+STEP=0; TOTAL=10
 step() { STEP=$((STEP + 1)); log "[$STEP/$TOTAL] $*"; }
 
 
@@ -184,26 +184,52 @@ else
 fi
 
 
-# ------------------------------------------------------------ 8. desktop entries
-step "Adding application menu entries"
+# ------------------------------------------------------------ 8. install Windows
+step "Installing Windows"
 
-"$PROJECT_DIR/lib/setup-desktop.sh" --quiet || warn "Could not create desktop entries"
-
-
-# ----------------------------------------------------------------------- done
-echo
 if [ -f "$VM_DIR/.installed" ]; then
-    log "Everything is ready. Launch with:"
-    echo "     ./powerpoint.sh      ./excel.sh"
+    log "Already installed, skipping"
 else
-    log "Ready to install Windows. This takes 15-30 minutes and needs no input:"
-    echo
-    echo "     ./vm.sh install"
-    echo
-    echo "  Windows installs itself, creates the '$RDP_USER' account, configures"
-    echo "  Remote Desktop and reboots. When it settles, run:"
-    echo
-    echo "     ./finish-setup.sh"
-    echo
-    echo "  which installs Office and finishes up."
+    log "Starting the unattended installation - no input needed"
+    log "A window will show progress; it is safe to minimise but not to close"
+    "$PROJECT_DIR/vm.sh" install >/dev/null 2>&1 &
+
+    # Windows partitions the disk, installs, runs configure.ps1 at first logon
+    # (which is what enables Remote Desktop), installs Office and reboots. RDP
+    # answering is therefore the signal that all of that has finished.
+    log "Waiting for Windows - typically 15 to 30 minutes"
+    DEADLINE=$(( $(date +%s) + 4500 ))   # 75 minutes; Office is a big download
+    until timeout 12 "$FREERDP_BIN" /v:"127.0.0.1:$RDP_PORT" /u:"$RDP_USER" /d: \
+            /p:"$(cat "$PASSWORD_FILE")" /cert:ignore +auth-only >/dev/null 2>&1; do
+        [ "$(date +%s)" -lt "$DEADLINE" ] \
+            || die "Windows did not finish in 75 minutes.
+  Watch it with:  ./vm.sh start
+  Then re-run this script; it will pick up where it left off."
+        sleep 20
+    done
+    touch "$VM_DIR/.installed"
+    log "Windows is up"
 fi
+
+
+# ---------------------------------------------------------------- 9. finishing
+step "Extracting icons and adding menu entries"
+
+"$PROJECT_DIR/lib/finish-setup.sh" --quiet || warn "Finishing steps had a problem; re-run ./install.sh to retry"
+
+
+# --------------------------------------------------------------- 10. all done
+step "Done"
+
+echo
+log "Setup complete. Launch Office with:"
+echo
+echo "     ./powerpoint.sh        ./excel.sh"
+echo
+echo "  or find PowerPoint and Excel in your application menu."
+echo
+echo "  Sign in inside PowerPoint with your Microsoft 365 account to activate"
+echo "  Office. If it offers to manage your device, choose 'No, sign in to this"
+echo "  app only' - that avoids enrolling this VM in an organisation."
+echo
+echo "  ./vm.sh stop     when you are finished for the day"

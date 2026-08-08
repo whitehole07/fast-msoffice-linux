@@ -7,10 +7,8 @@ invisible.
 Not a browser tab. Not a Windows desktop in a window. Not Wine.
 
 ```
-./install.sh          # prepare everything
-./vm.sh install   # Windows installs itself, unattended
-./finish-setup.sh     # icons, menu entries, faster networking
-./powerpoint.sh       # a real PowerPoint window
+./install.sh      # one command: installs Windows and Office, unattended
+./powerpoint.sh   # a real PowerPoint window
 ```
 
 Everything lives in this one folder. **Nothing is installed on your system.**
@@ -66,43 +64,26 @@ From [microsoft.com/software-download/windows11](https://www.microsoft.com/softw
 choose **"Windows 11 Disk Image (ISO) for x64 devices"**. No key, no
 registration. Save it into `vm/iso/`.
 
-### 2. Prepare
+### 2. Run one command
 
 ```bash
 ./install.sh
 ```
 
-Checks your system, unpacks FreeRDP, downloads the virtio drivers, generates a
-random Windows password, builds an unattended-install CD matched to your
-keyboard layout and timezone, and creates the disk, UEFI variables and virtual
-TPM.
+Then walk away. It checks your system, unpacks FreeRDP, downloads the virtio
+drivers, generates a random Windows password, builds an unattended-install CD
+matched to your keyboard layout and timezone, creates the disk, firmware
+variables and virtual TPM, then **installs Windows and Office without any
+input** and finishes by extracting the real Office icons and adding the apps to
+your menu.
 
-Safe to re-run at any time — every step skips work already done, so an
-interrupted download simply resumes.
+Expect 15-30 minutes, mostly downloading Office. A window shows progress; you
+can minimise it, but closing it kills the VM.
 
-### 3. Install Windows
+Safe to interrupt and re-run - every step detects work already done, so it
+picks up where it left off rather than starting over.
 
-```bash
-./vm.sh install
-```
-
-Then walk away for 15–30 minutes. No wizard, no keypresses. Windows partitions
-the disk, installs **Pro**, creates a local account, enables Remote Desktop,
-applies every performance tweak, installs Office and reboots.
-
-A window shows progress. Closing it kills the VM — minimize instead.
-
-### 4. Finish
-
-```bash
-./finish-setup.sh
-```
-
-Extracts the real Office icons out of the Windows binaries, adds Excel and
-PowerPoint to your application menu, and switches the VM to faster virtio
-networking.
-
-### 5. Activate Office
+### 3. Activate Office
 
 Open PowerPoint and sign in with your Microsoft 365 account.
 
@@ -207,7 +188,7 @@ RDP_KBD=0x00000409 ./excel.sh   # force a US keyboard
 | `install.sh` | One-command preparation |
 | `vm.sh` | Start, stop and status for the VM |
 | `lib/rdp-app.sh` | Publishes a single app; starts the VM if needed |
-| `finish-setup.sh` | Post-install: icons, menu entries, virtio |
+| `lib/finish-setup.sh` | Post-install: icons, menu entries, virtio |
 | `lib/extract-icons.py` | Reads icons out of Windows PE resources |
 | `windows/autounattend.xml.template` | Unattended install answer file |
 | `windows/configure.ps1` | Runs inside Windows at first logon |
