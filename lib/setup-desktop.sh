@@ -43,6 +43,9 @@ Comment=$comment
 Exec=$PROJECT_DIR/${id}.sh %f
 Icon=$icon
 Terminal=false
+# Tells the desktop a launch is under way, so the dash shows a spinner while
+# the VM boots instead of the click appearing to do nothing.
+StartupNotify=true
 Categories=Office;
 Keywords=$keywords
 StartupWMClass=$name
