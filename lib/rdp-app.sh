@@ -18,11 +18,18 @@ shift || true
 [ -x "$FREERDP_BIN" ] || die "FreeRDP missing. Run ./install.sh"
 
 # Start the VM headless if it is not already running.
-if ! pgrep -f "qemu-system-x86_64.*M365-office" >/dev/null 2>&1; then
-    log "VM not running — starting it headless (first boot takes a moment)"
+if ! pgrep -f 'qemu-system-x86_6[4]' >/dev/null 2>&1; then
+    log "Starting Windows in the background - about a minute the first time"
     "$PROJECT_DIR/vm.sh" headless >/dev/null 2>&1 &
-    for _ in $(seq 1 60); do
-        (exec 3<>"/dev/tcp/127.0.0.1/$RDP_PORT") 2>/dev/null && break
+
+    # Wait for Windows to actually accept a login, not merely for the port to
+    # open: QEMU binds the forwarded port the moment it starts, long before
+    # Windows has booted, so a port check returns immediately and the
+    # connection below fails with nothing visible happening.
+    for _ in $(seq 1 90); do
+        timeout 8 "$FREERDP_BIN" /v:"127.0.0.1:$RDP_PORT" /u:"$RDP_USER" /d: \
+            /p:"$(cat "$PASSWORD_FILE" 2>/dev/null)" /cert:ignore +auth-only \
+            >/dev/null 2>&1 && break
         sleep 2
     done
 fi

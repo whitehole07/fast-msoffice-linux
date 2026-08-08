@@ -55,8 +55,8 @@ match your keyboard layout and timezone automatically.
 
 Office Online is a browser tab. LibreOffice mangles complex `.pptx`. Wine
 cannot install Microsoft 365 at all — Click-to-Run fails before it writes a
-log. And add-ins like **Efficient Elements** or **think-cell** hook so deeply
-into PowerPoint that only real Windows will do.
+log. And PowerPoint add-ins hook deeply enough into the application - ribbon
+integration, COM automation - that only real Windows will run them.
 
 **[Read the full guide →](GUIDE.md)**
 

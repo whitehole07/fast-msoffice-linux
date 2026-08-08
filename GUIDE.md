@@ -21,8 +21,8 @@ Delete the folder and every trace is gone.
 Office on Linux usually means compromises: Office Online is a browser tab,
 LibreOffice breaks complex `.pptx` formatting, and Wine cannot install
 Microsoft 365 at all — its Click-to-Run installer fails before it can even
-write a log. Add-ins like **Efficient Elements** or **think-cell** hook so
-deeply into PowerPoint that only real Windows will do.
+write a log. And PowerPoint add-ins hook deeply enough into the application -
+ribbon integration, COM automation - that only real Windows will run them.
 
 A VM solves compatibility but normally costs you the desktop experience. This
 project closes that gap with **RemoteApp**: an RDP feature that streams a
