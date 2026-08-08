@@ -48,10 +48,13 @@ VIRTIO_URL="${VIRTIO_URL:-https://fedorapeople.org/groups/virt/virtio-win/direct
 VM_CPUS="${VM_CPUS:-6}"
 
 # Hyper-V enlightenments. Windows has paravirtualised interfaces for timers,
-# interrupts, spinlocks and TLB flushes, but only uses them when the hypervisor
-# advertises them. Without these it falls back to emulated hardware timers and
-# busy-waits on spinlocks, which is a large and constant overhead.
-CPU_MODEL="${CPU_MODEL:-host,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time,hv_vpindex,hv_runtime,hv_synic,hv_stimer,hv_stimer_direct,hv_frequencies,hv_tlbflush,hv_ipi,hv_reenlightenment}"
+# interrupts, spinlocks and TLB flushes, and only uses them when the hypervisor
+# advertises them. Without these it falls back to emulated timers and busy-waits
+# on spinlocks, which is a constant tax on everything.
+#
+# hv_passthrough exposes every enlightenment the host kernel supports, so this
+# keeps working as KVM gains new ones, rather than freezing a hand-picked list.
+CPU_MODEL="${CPU_MODEL:-host,hv_passthrough}"
 VM_RAM="${VM_RAM:-8G}"
 
 # RDP is reached over QEMU user-mode networking, which needs no root and no

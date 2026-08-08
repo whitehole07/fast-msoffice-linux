@@ -82,7 +82,7 @@ overhead to begin with, and the setup ships tuned:
 - **VBS off.** Windows 11 runs a hypervisor inside your VM by default for
   Memory Integrity. Nested virtualisation slows down everything. Turning it off
   is the single biggest win here.
-- **13 Hyper-V enlightenments.** Paravirtualised timers, interrupts and
+- **Hyper-V enlightenments.** Paravirtualised timers, interrupts and
   spinlocks, so Windows stops busy-waiting on things.
 - **60 fps compositing.** Windows caps RDP around 30 by default.
 - **H.264 AVC420.** Half the encoding work of 4:4:4, and you notice it most
