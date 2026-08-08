@@ -8,7 +8,7 @@
 
 This repo is specifically optimized for low latency and responsiveness, so typing, scrolling, and dragging feel local rather than remote. Each app gets its own window, icon, and Alt-Tab entry, while the underlying Windows VM runs fully headless.
 
-Setup takes a single command and installs nothing on your system.
+Setup takes a single command, installing all dependencies within the project folder with nothing installed system-wide.
 <br>
 
 [![License](https://img.shields.io/github/license/whitehole07/fast-msoffice-linux?style=flat-square&color=blue)](LICENSE)
