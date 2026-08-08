@@ -3,4 +3,4 @@
 set -euo pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 # APP_NAME is what appears in alt-tab and the taskbar.
-APP_NAME='PowerPoint' exec ./rdp-app.sh 'C:\Program Files\Microsoft Office\root\Office16\POWERPNT.EXE' "$@"
+APP_NAME='PowerPoint' exec ./lib/rdp-app.sh 'C:\Program Files\Microsoft Office\root\Office16\POWERPNT.EXE' "$@"

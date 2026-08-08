@@ -8,7 +8,7 @@ Not a browser tab. Not a Windows desktop in a window. Not Wine.
 
 ```
 ./install.sh          # prepare everything
-./run-vm.sh install   # Windows installs itself, unattended
+./vm.sh install   # Windows installs itself, unattended
 ./finish-setup.sh     # icons, menu entries, faster networking
 ./powerpoint.sh       # a real PowerPoint window
 ```
@@ -83,7 +83,7 @@ interrupted download simply resumes.
 ### 3. Install Windows
 
 ```bash
-./run-vm.sh install
+./vm.sh install
 ```
 
 Then walk away for 15–30 minutes. No wizard, no keypresses. Windows partitions
@@ -124,7 +124,7 @@ The VM starts automatically if it isn't running. First launch of the day waits
 for Windows to boot (~30s); after that it's instant.
 
 ```bash
-./stop-vm.sh        # shut the VM down when you're done
+./vm.sh stop        # shut the VM down when you're done
 ```
 
 Leaving it running costs 8 GB of RAM but makes launches instant. It uses almost
@@ -134,11 +134,11 @@ no CPU when idle.
 |---|---|
 | `./powerpoint.sh`, `./excel.sh` | Office apps as native windows |
 | `./desktop.sh` | Full Windows desktop, for installing add-ins or settings |
-| `./run-vm.sh` | Start the VM in a window |
-| `./run-vm.sh headless` | Start it invisibly |
-| `./stop-vm.sh` | Graceful shutdown |
-| `./stop-vm.sh force` | Pull the plug (only if wedged) |
-| `./setup-desktop.sh --remove` | Remove the application menu entries |
+| `./vm.sh start` | Start the VM in a window |
+| `./vm.sh headless` | Start it invisibly |
+| `./vm.sh stop` | Graceful shutdown |
+| `./vm.sh stop force` | Pull the plug (only if wedged) |
+| `./lib/setup-desktop.sh --remove` | Remove the application menu entries |
 
 ### Your files
 
@@ -149,8 +149,8 @@ nothing is trapped in the VM.
 ### Other Windows apps
 
 ```bash
-./rdp-app.sh 'C:\Windows\System32\notepad.exe'
-APP_NAME='My App' ./rdp-app.sh 'C:\Path\To\App.exe'
+./lib/rdp-app.sh 'C:\Windows\System32\notepad.exe'
+APP_NAME='My App' ./lib/rdp-app.sh 'C:\Path\To\App.exe'
 ```
 
 Anything installed in the VM can be published as a window this way.
@@ -159,10 +159,10 @@ Anything installed in the VM can be published as a window this way.
 
 ## Configuration
 
-Everything is in `env.sh`, and any setting can be overridden per-run:
+Everything is in `lib/env.sh`, and any setting can be overridden per-run:
 
 ```bash
-VM_RAM=16G ./run-vm.sh          # more memory for large files
+VM_RAM=16G ./vm.sh start          # more memory for large files
 RDP_GFX=AVC444 ./powerpoint.sh  # sharper text, slightly laggier motion
 RDP_KBD=0x00000409 ./excel.sh   # force a US keyboard
 ```
@@ -203,12 +203,12 @@ RDP_KBD=0x00000409 ./excel.sh   # force a US keyboard
 
 | | |
 |---|---|
-| `env.sh` | Every setting, one place. Sourced by the rest |
+| `lib/env.sh` | Every setting, one place. Sourced by the rest |
 | `install.sh` | One-command preparation |
-| `run-vm.sh` | Builds the QEMU command line |
-| `rdp-app.sh` | Publishes a single app; starts the VM if needed |
+| `vm.sh` | Start, stop and status for the VM |
+| `lib/rdp-app.sh` | Publishes a single app; starts the VM if needed |
 | `finish-setup.sh` | Post-install: icons, menu entries, virtio |
-| `extract-icons.py` | Reads icons out of Windows PE resources |
+| `lib/extract-icons.py` | Reads icons out of Windows PE resources |
 | `windows/autounattend.xml.template` | Unattended install answer file |
 | `windows/configure.ps1` | Runs inside Windows at first logon |
 | `vm/` | Disk, firmware variables, TPM state, ISOs |
@@ -247,10 +247,10 @@ passthrough, which needs a second GPU.
 
 **Windows didn't install / setup asked questions**
 The unattended CD wasn't picked up. Check `vm/iso/unattend.iso` exists, re-run
-`./install.sh`, and make sure you used `./run-vm.sh install`.
+`./install.sh`, and make sure you used `./vm.sh install`.
 
 **"The PC must support TPM 2.0"**
-Your firmware lacks TPM support. `env.sh` must point at the **4 MB** OVMF build
+Your firmware lacks TPM support. `lib/env.sh` must point at the **4 MB** OVMF build
 (`OVMF_CODE_4M.secboot.qcow2`); the 2 MB one is a legacy build without TPM, and
 the error appears even with a perfectly working swtpm attached.
 
@@ -273,7 +273,7 @@ Detection reads your desktop's input source. Override with
 have that layout added under Settings → Time & language.
 
 **No network after switching to virtio**
-The driver wasn't installed. Recover with `NIC_MODEL=e1000e ./run-vm.sh`, then
+The driver wasn't installed. Recover with `NIC_MODEL=e1000e ./vm.sh start`, then
 install `virtio-win-gt-x64.msi` from the virtio CD inside Windows.
 
 **Dragging feels sluggish**
@@ -285,7 +285,7 @@ acceleration` is ticked in Office.
 ## Uninstalling
 
 ```bash
-./setup-desktop.sh --remove     # the two application menu entries
+./lib/setup-desktop.sh --remove     # the two application menu entries
 rm -rf ~/Documents/Projects/M365-office
 ```
 

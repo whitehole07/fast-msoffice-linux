@@ -13,7 +13,7 @@
 #
 set -euo pipefail
 
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/env.sh"
 
 STEP=0; TOTAL=8
 step() { STEP=$((STEP + 1)); log "[$STEP/$TOTAL] $*"; }
@@ -187,7 +187,7 @@ fi
 # ------------------------------------------------------------ 8. desktop entries
 step "Adding application menu entries"
 
-"$PROJECT_DIR/setup-desktop.sh" --quiet || warn "Could not create desktop entries"
+"$PROJECT_DIR/lib/setup-desktop.sh" --quiet || warn "Could not create desktop entries"
 
 
 # ----------------------------------------------------------------------- done
@@ -198,7 +198,7 @@ if [ -f "$VM_DIR/.installed" ]; then
 else
     log "Ready to install Windows. This takes 15-30 minutes and needs no input:"
     echo
-    echo "     ./run-vm.sh install"
+    echo "     ./vm.sh install"
     echo
     echo "  Windows installs itself, creates the '$RDP_USER' account, configures"
     echo "  Remote Desktop and reboots. When it settles, run:"

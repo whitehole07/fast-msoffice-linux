@@ -9,7 +9,7 @@ Not a browser tab. Not a Windows desktop in a window. Not Wine.
 
 ```bash
 ./install.sh          # prepare everything
-./run-vm.sh install   # Windows installs itself, unattended
+./vm.sh install   # Windows installs itself, unattended
 ./finish-setup.sh     # icons, menu entries, faster networking
 ./powerpoint.sh       # a real PowerPoint window
 ```
@@ -42,7 +42,7 @@ rather than installed. Delete the folder and every trace is gone.
 
 ## Hands-off
 
-`./run-vm.sh install` and walk away. Windows partitions the disk, installs Pro,
+`./vm.sh install` and walk away. Windows partitions the disk, installs Pro,
 creates a local account, enables Remote Desktop, applies every tweak above and
 installs Office — no wizard, no keypresses. The answer file is generated to
 match your keyboard layout and timezone automatically.

@@ -6,7 +6,8 @@
 # the host: qemu/swtpm/edk2 come from the system, FreeRDP is extracted locally
 # into opt/, and no libvirt daemon is involved.
 
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# This file lives in lib/, so the project root is one level up.
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 VM_DIR="${VM_DIR:-$PROJECT_DIR/vm}"
 ISO_DIR="${ISO_DIR:-$VM_DIR/iso}"

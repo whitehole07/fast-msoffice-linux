@@ -10,7 +10,7 @@
 #
 set -euo pipefail
 
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/env.sh"
 
 APP="${1:?usage: rdp-app.sh '<windows path to .exe>' [args...]}"
 shift || true
@@ -20,7 +20,7 @@ shift || true
 # Start the VM headless if it is not already running.
 if ! pgrep -f "qemu-system-x86_64.*M365-office" >/dev/null 2>&1; then
     log "VM not running — starting it headless (first boot takes a moment)"
-    "$PROJECT_DIR/run-vm.sh" headless >/dev/null 2>&1 &
+    "$PROJECT_DIR/vm.sh" headless >/dev/null 2>&1 &
     for _ in $(seq 1 60); do
         (exec 3<>"/dev/tcp/127.0.0.1/$RDP_PORT") 2>/dev/null && break
         sleep 2

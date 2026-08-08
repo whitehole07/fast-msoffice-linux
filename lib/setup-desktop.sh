@@ -10,7 +10,7 @@
 # a Linux desktop looks for application entries. --remove deletes them.
 #
 set -euo pipefail
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/env.sh"
 
 APPS_DIR="${APPS_DIR:-$HOME/.local/share/applications}"
 QUIET=0

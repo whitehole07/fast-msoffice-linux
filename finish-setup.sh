@@ -9,14 +9,14 @@
 # faster virtio network card. Safe to re-run.
 #
 set -euo pipefail
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/env.sh"
 
 OFFICE='C:\Program Files\Microsoft Office\root\Office16'
 
 # --- make sure the VM is up ------------------------------------------------
 if ! pgrep -f 'qemu-system-x86_6[4]' >/dev/null 2>&1; then
     log "Starting the VM"
-    "$PROJECT_DIR/run-vm.sh" headless >/dev/null 2>&1 &
+    "$PROJECT_DIR/vm.sh" headless >/dev/null 2>&1 &
 fi
 
 log "Waiting for Windows"
@@ -26,7 +26,7 @@ for i in $(seq 1 45); do
         log "Windows is up"
         break
     fi
-    [ "$i" -eq 45 ] && die "Windows did not respond. Is it still installing? Watch with: ./run-vm.sh"
+    [ "$i" -eq 45 ] && die "Windows did not respond. Is it still installing? Watch with: ./vm.sh start"
     sleep 10
 done
 
@@ -45,7 +45,7 @@ fetch() {
         /app:program:"cmd.exe",cmd:"/c copy /y \"$OFFICE\\$exe\" \"$dest\"" \
         >/dev/null 2>&1 || true
     if [ -f "$PROJECT_DIR/icons/$exe" ]; then
-        python3 "$PROJECT_DIR/extract-icons.py" \
+        python3 "$PROJECT_DIR/lib/extract-icons.py" \
             "$PROJECT_DIR/icons/$exe" "$PROJECT_DIR/icons/$out" >/dev/null 2>&1 \
             && log "  got $out" || warn "  could not decode an icon from $exe"
         rm -f "$PROJECT_DIR/icons/$exe"
@@ -58,7 +58,7 @@ fetch POWERPNT.EXE powerpoint.png
 fetch EXCEL.EXE    excel.png
 
 # --- refresh the menu entries so they pick up the real icons ---------------
-"$PROJECT_DIR/setup-desktop.sh" --quiet
+"$PROJECT_DIR/lib/setup-desktop.sh" --quiet
 log "Application menu entries refreshed"
 
 # --- switch to the faster network card -------------------------------------
