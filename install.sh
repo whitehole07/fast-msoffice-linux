@@ -43,16 +43,18 @@ log "KVM ready, ${AVAIL_GB}G free, QEMU $(qemu-system-x86_64 --version | awk 'NR
 
 
 # ------------------------------------------------------------------ 2. FreeRDP
-step "Setting up FreeRDP (into opt/, not onto your system)"
+step "Setting up FreeRDP and xdotool (into opt/, not onto your system)"
 
-if [ -x "$FREERDP_BIN" ]; then
+if [ -x "$FREERDP_BIN" ] && [ -x "$OPT_DIR/usr/bin/xdotool" ]; then
     log "Already present, skipping"
 else
     TMP_RPM="$PROJECT_DIR/.tmp-rpm"
     rm -rf "$TMP_RPM"; mkdir -p "$TMP_RPM"
     # Download the packages as a normal user and unpack them here rather than
     # installing them, so the host stays untouched.
-    ( cd "$TMP_RPM" && dnf download --resolve freerdp >/dev/null 2>&1 ) \
+    # xdotool is used to correct window classes so alt-tab shows the right
+    # icon per application; see lib/fix-window-class.sh.
+    ( cd "$TMP_RPM" && dnf download --resolve freerdp xdotool >/dev/null 2>&1 ) \
         || die "Could not download the freerdp packages"
     for r in "$TMP_RPM"/*.rpm; do
         rpm2cpio "$r" | ( cd "$OPT_DIR" && cpio -idmu --quiet ) 2>/dev/null

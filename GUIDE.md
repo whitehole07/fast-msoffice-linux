@@ -189,6 +189,7 @@ RDP_KBD=0x00000409 ./excel.sh   # force a US keyboard
 | `lib/rdp-app.sh` | Publishes a single app; starts the VM if needed |
 | `lib/finish-setup.sh` | Post-install: icons, menu entries, virtio |
 | `lib/extract-icons.py` | Reads icons out of Windows PE resources |
+| `lib/fix-window-class.sh` | Gives each Office window the right icon in alt-tab |
 | `windows/autounattend.xml.template` | Unattended install answer file |
 | `windows/configure.ps1` | Runs inside Windows at first logon |
 | `vm/` | Disk, firmware variables, TPM state, ISOs |

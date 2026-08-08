@@ -25,10 +25,16 @@ fi
 
 mkdir -p "$APPS_DIR"
 
-# StartupWMClass is the important line: it matches a running window back to
-# this entry, which is what makes the real Office icon appear in alt-tab and
-# the dash rather than a generic placeholder. It must match the /wm-class
-# passed to FreeRDP, which rdp-app.sh sets from APP_NAME.
+# StartupWMClass ties a running window back to this entry, which is what puts a
+# real icon on it in alt-tab and the overview. It matches the /wm-class that
+# rdp-app.sh passes to FreeRDP.
+#
+# Known limitation: Windows allows one RDP session per user, so opening a second
+# Office app takes over the first one's session and one FreeRDP client ends up
+# drawing every window with a single WM_CLASS. With both apps open they
+# therefore share an icon, whichever connected last. Dropping StartupWMClass
+# does not help; the switcher then shows no icon at all, because it needs an
+# application match to have an icon to show.
 write_entry() {
     local id="$1" name="$2" comment="$3" keywords="$4"
     local icon="$PROJECT_DIR/icons/${id}.png"
