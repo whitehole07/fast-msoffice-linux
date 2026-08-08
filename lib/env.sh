@@ -32,8 +32,12 @@ OVMF_FORMAT="${OVMF_FORMAT:-qcow2}"
 # into the folder by a browser is picked up without moving it.
 # The `|| true` matters: this file is sourced under `set -e` with pipefail, and
 # before an ISO exists the pipeline fails and would abort the calling script.
+# Exclude the ISOs this project generates or downloads itself. unattend.iso in
+# particular sorts before Win11*.iso under case-insensitive locales, so without
+# it the installer boots the answer-file CD - which is not bootable - and the
+# VM stops at "No bootable option or device was found".
 WIN_ISO="${WIN_ISO:-$(ls "$ISO_DIR"/*.iso "$PROJECT_DIR"/*.iso 2>/dev/null \
-                      | grep -viE 'virtio' | head -1 || true)}"
+                      | grep -viE 'virtio|unattend' | head -1 || true)}"
 VIRTIO_ISO="${VIRTIO_ISO:-$ISO_DIR/virtio-win.iso}"
 VIRTIO_URL="${VIRTIO_URL:-https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso}"
 
