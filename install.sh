@@ -213,19 +213,48 @@ else
         done
     ) &
 
-    # Windows partitions the disk, installs, runs configure.ps1 at first logon
-    # (which is what enables Remote Desktop), installs Office and reboots. RDP
-    # answering is therefore the signal that all of that has finished.
-    log "Waiting for Windows - typically 15 to 30 minutes"
-    DEADLINE=$(( $(date +%s) + 4500 ))   # 75 minutes; Office is a big download
-    until timeout 12 "$FREERDP_BIN" /v:"127.0.0.1:$RDP_PORT" /u:"$RDP_USER" /d: \
-            /p:"$(cat "$PASSWORD_FILE")" /cert:ignore +auth-only >/dev/null 2>&1; do
-        [ "$(date +%s)" -lt "$DEADLINE" ] \
-            || die "Windows did not finish in 75 minutes.
+    # Readiness is the *reboot*, not the first RDP response.
+    #
+    # autounattend.xml signs the user in at the console to run the first-logon
+    # commands: configure.ps1 (which is what enables RDP), then the Office
+    # install, then a reboot. So RDP starts answering long before Office is
+    # finished, and connecting during that window collides with the console
+    # session - Windows offers to disconnect it, which would kill the install.
+    #
+    # The reboot is the last of those commands, so waiting for RDP to answer,
+    # drop, and answer again is what proves everything completed. auth-only
+    # probes are used throughout: they verify credentials without opening a
+    # session, so they cannot disturb the console.
+    rdp_up() {
+        timeout 12 "$FREERDP_BIN" /v:"127.0.0.1:$RDP_PORT" /u:"$RDP_USER" /d: \
+            /p:"$(cat "$PASSWORD_FILE")" /cert:ignore +auth-only >/dev/null 2>&1
+    }
+
+    log "Waiting for Windows to install (15-30 minutes)"
+    DEADLINE=$(( $(date +%s) + 4500 ))
+    until rdp_up; do
+        [ "$(date +%s)" -lt "$DEADLINE" ] || die "Windows did not install within 75 minutes.
   Watch it with:  ./vm.sh start
-  Then re-run this script; it will pick up where it left off."
+  Then re-run this script; it picks up where it left off."
         sleep 20
     done
+
+    log "Windows is up; waiting for Office and the final reboot"
+    # Office is a multi-GB download, so allow generously for the reboot.
+    DEADLINE=$(( $(date +%s) + 3600 ))
+    while rdp_up; do
+        [ "$(date +%s)" -lt "$DEADLINE" ] || { warn "No reboot after 60 minutes; continuing anyway"; break; }
+        sleep 20
+    done
+
+    log "Rebooting - Office finished installing"
+    DEADLINE=$(( $(date +%s) + 900 ))
+    until rdp_up; do
+        [ "$(date +%s)" -lt "$DEADLINE" ] || die "Windows did not come back after rebooting.
+  Check it with:  ./vm.sh start"
+        sleep 10
+    done
+
     touch "$VM_DIR/.installed"
     log "Windows is up"
 fi
