@@ -34,6 +34,9 @@ $pol = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
 New-Item -Path $pol -Force | Out-Null
 Set-ItemProperty -Path $pol -Name DWMFRAMEINTERVAL -Value 15 -Type DWord
 Set-ItemProperty -Path $pol -Name AVC444ModePreferred -Value 1 -Type DWord
+# There is no GPU to encode with, so asking for hardware AVC only makes the
+# server probe for something that is not there.
+Set-ItemProperty -Path $pol -Name AVCHardwareEncodePreferred -Value 0 -Type DWord
 
 Say "Disabling Virtualization-Based Security"
 # Windows 11 enables VBS and Memory Integrity by default. Inside a VM that
