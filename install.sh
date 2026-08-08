@@ -197,6 +197,22 @@ else
     log "A window will show progress; it is safe to minimise but not to close"
     "$PROJECT_DIR/vm.sh" install >/dev/null 2>&1 &
 
+    # Microsoft's boot image prints "Press any key to boot from CD or DVD" and
+    # waits about five seconds. Nobody is watching an unattended install, so
+    # press it through the QEMU monitor. Sent repeatedly because the exact
+    # moment the prompt appears depends on how fast the firmware initialises;
+    # stray Enter keys in Windows Setup are harmless.
+    (
+        for _ in $(seq 1 40); do
+            [ -S "$VM_DIR/monitor.sock" ] && break
+            sleep 1
+        done
+        for _ in $(seq 1 30); do
+            monitor_send "sendkey ret" || true
+            sleep 1
+        done
+    ) &
+
     # Windows partitions the disk, installs, runs configure.ps1 at first logon
     # (which is what enables Remote Desktop), installs Office and reboots. RDP
     # answering is therefore the signal that all of that has finished.

@@ -44,11 +44,7 @@ case "$ACTION" in
         # machine: Windows flushes its disks and exits cleanly. Killing QEMU
         # instead risks a dirty filesystem.
         log "Asking Windows to shut down..."
-        python3 -c "
-import socket, sys
-s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-s.connect(sys.argv[1]); s.sendall(b'system_powerdown\n'); s.close()
-" "$MON"
+        monitor_send "system_powerdown" || die "Could not reach the monitor socket"
 
         for _ in $(seq 1 60); do
             running || { log "VM is off"; exit 0; }

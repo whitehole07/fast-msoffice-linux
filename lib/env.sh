@@ -190,6 +190,21 @@ rdp_run() {
     fi
 }
 
+# Send a command to QEMU's monitor socket. Used to press the power button and
+# to answer the "Press any key to boot from CD" prompt during installation.
+monitor_send() {
+    local sock="$VM_DIR/monitor.sock" cmd="$1"
+    [ -S "$sock" ] || return 1
+    python3 -c "
+import socket, sys
+s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+s.settimeout(5)
+s.connect(sys.argv[1])
+s.sendall((sys.argv[2] + '\n').encode())
+s.close()
+" "$sock" "$cmd" 2>/dev/null
+}
+
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!! \033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31mERR\033[0m %s\n' "$*" >&2; exit 1; }
