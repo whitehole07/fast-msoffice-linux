@@ -1,4 +1,4 @@
-# msoffice-on-linux
+# fast-msoffice-linux
 
 **Microsoft Excel and PowerPoint on Linux, as real native windows — fast and smooth.**
 
