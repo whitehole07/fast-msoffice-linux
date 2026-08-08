@@ -1,0 +1,17 @@
+# VM state and large binaries — never commit
+vm/
+opt/
+icons/*.png
+icons/*.EXE
+
+# Contains the Windows account password in plain text
+.rdp-password
+
+# Generated from windows/autounattend.xml.template at install time.
+# It has the password baked in, so only the template is tracked.
+windows/autounattend.xml
+
+# Scratch
+.tmp-rpm/
+__pycache__/
+*.pyc
