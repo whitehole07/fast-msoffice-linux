@@ -199,30 +199,50 @@ RDP_KBD=0x00000409 ./excel.sh   # force a US keyboard
 
 ## Performance
 
-Editing feels essentially native. The tuning that gets it there is applied
-automatically:
+KVM runs the guest on the host CPU, so compute is close to native. What follows
+concerns the layers above that, all enabled by default in a stock Windows VM.
 
-- **Virtualization-Based Security off**, Windows 11 runs a hypervisor *inside*
-  your VM by default for Memory Integrity. Nested virtualization taxes
-  everything; this is the single biggest win.
-- **Hyper-V enlightenments**, paravirtualized timers, interrupts and
-  spinlocks, so Windows stops busy-waiting.
-- **60 fps compositing**, Windows caps RDP at ~30 fps by default.
-- **AVC420 (H.264)**, half the encode work of 4:4:4, which matters most during
-  continuous motion like dragging shapes.
-- **Office hardware acceleration off**, with no GPU, Office's Direct3D path
-  falls back to a software rasterizer that is *slower* than plain drawing.
-- **virtio networking**, lower latency than emulated hardware.
+**Virtualization-Based Security, off.** Windows 11 enables VBS and Memory
+Integrity by default, which runs a hypervisor inside the VM. The resulting
+nested virtualisation adds cost to every context switch. VBS protects
+credentials on physical hardware; here it guards a disposable sandbox reachable
+only on loopback, so it is disabled.
 
-With all of it applied, editing, scrolling, dragging objects and slide
-animations feel like a local application.
+**Hyper-V enlightenments.** Windows has paravirtualised interfaces for timers,
+interrupts, spinlocks and TLB flushes, but only uses them if the hypervisor
+says they exist. Without them it falls back to emulated hardware timers and
+spins on locks. We pass `hv_passthrough`, which exposes everything the host
+kernel supports.
 
-There is no GPU in the VM, so the desktop compositor renders on the CPU. In
-practice that has not been the limit, the tuning above matters far more. If
-you ever do hit a ceiling on very heavy 3D content, the only real fix is GPU
-passthrough, which needs a second GPU.
+**60 fps compositing.** Windows throttles RDP to about 30 fps.
+`DWMFRAMEINTERVAL` is the minimum gap between frames in milliseconds, so 15
+targets 60.
 
----
+**H.264, 4:2:0.** Pass no codec flag and FreeRDP negotiates whatever the server
+offers, often something considerably slower. AVC420 halves the encoding work of
+4:4:4 for a small loss of text sharpness, and encoding is the bottleneck during
+continuous motion like dragging a shape.
+
+**Office hardware acceleration, off.** Office draws through Direct3D. With no
+GPU that lands on WARP, Microsoft's software rasteriser, which is slower than
+Office's own drawing path. This is the largest single improvement for dragging
+objects on a slide.
+
+**virtio networking and 6 vCPUs.** RDP runs over loopback, so the emulated
+network card was pure overhead. Compositing is CPU-bound without a GPU, so
+cores translate directly into smoothness.
+
+### Where it still falls short
+
+There is no GPU in the VM, so the compositor renders in software. In practice
+this has not been the limiting factor; the settings above matter more.
+
+Switching between two open Office windows is slow, and clicks can land in the
+window you switched away from. That is a
+[FreeRDP RemoteApp limitation](https://github.com/FreeRDP/FreeRDP/issues/12984):
+Windows sends "this window is active now" messages that the X11 client does not
+act on. No client setting works around it. With one window open it does not
+arise, and `./desktop.sh` avoids it when you need several apps at once.
 
 ## Troubleshooting
 

@@ -4,11 +4,11 @@
 
 # fast-msoffice-linux
 
-**Excel and PowerPoint on Linux, in real windows, at real speed.**
+**Run Excel and PowerPoint on Linux as native-feeling windows, with low latency.**
 
-They get a taskbar entry, an alt-tab slot and the proper Office icons.
-The Windows VM doing the work never shows itself.
+This repo is specifically optimized for low latency and responsiveness, so typing, scrolling, and dragging feel local rather than remote. Each app gets its own window, icon, and Alt-Tab entry, while the underlying Windows VM runs fully headless.
 
+Setup takes a single command and installs nothing on your system.
 <br>
 
 [![License](https://img.shields.io/github/license/whitehole07/fast-msoffice-linux?style=flat-square&color=blue)](LICENSE)
@@ -16,7 +16,7 @@ The Windows VM doing the work never shows itself.
 [![KVM](https://img.shields.io/badge/KVM%2FQEMU-no%20libvirt-success?style=flat-square)](#how-it-works)
 [![Stars](https://img.shields.io/github/stars/whitehole07/fast-msoffice-linux?style=flat-square&color=yellow)](https://github.com/whitehole07/fast-msoffice-linux/stargazers)
 
-[Get started](#get-started) · [Why bother](#why-bother) · [Speed](#speed) · [Full guide](GUIDE.md)
+[Get started](#get-started) · [Why bother](#why-bother) · [Performance](#performance) · [Full guide](GUIDE.md)
 
 <br>
 
@@ -52,6 +52,35 @@ Excel and PowerPoint in your application menu.
 
 ---
 
+## Performance
+
+This is the part the project is built around.
+
+KVM runs the guest on the host CPU, so compute is close to native from the
+start. The latency comes from the layers above it, and a stock Windows VM
+leaves every one of them at a default that costs responsiveness. Each is
+addressed during installation:
+
+| Setting | Effect |
+|---|---|
+| Virtualization-Based Security disabled | Windows 11 runs a hypervisor inside the VM for Memory Integrity. Nested virtualisation adds cost to every context switch |
+| `DWMFRAMEINTERVAL=15` | Windows throttles RDP compositing to roughly 30 fps; this targets 60 |
+| `/gfx:AVC420` | H.264 4:2:0 halves the encode cost of 4:4:4. Encoding is the bottleneck during continuous motion |
+| Office hardware acceleration disabled | With no GPU, Office's Direct3D path falls back to a software rasteriser slower than its own drawing code |
+| `hv_passthrough` | Exposes every Hyper-V enlightenment the host supports: paravirtualised timers, interrupts, spinlocks, TLB flushes |
+| virtio devices, 6 vCPU, 8 GB | Compositing is CPU-bound without a GPU, and RDP runs over loopback |
+
+None of it requires configuration. See [the guide](GUIDE.md#performance) for the
+reasoning behind each one.
+
+There is no GPU in the guest, so the desktop compositor renders in software.
+Editing, scrolling and animation are unaffected in practice. Switching between
+two open Office windows is slow, which is a
+[FreeRDP RemoteApp limitation](https://github.com/FreeRDP/FreeRDP/issues/12984)
+rather than a tuning problem.
+
+---
+
 ## Why bother
 
 Office on Linux usually means picking which compromise annoys you least:
@@ -70,30 +99,6 @@ So this uses a VM, but hides it. RDP has a feature called RemoteApp that sends
 a single application's window instead of the whole desktop. Windows runs
 headless in the background and Office just sits on your desktop like anything
 else.
-
----
-
-## Speed
-
-Typing, scrolling, dragging shapes around, slide animations: it all feels
-local. KVM runs the guest on your actual CPU, so there's no emulation
-overhead to begin with, and the setup ships tuned:
-
-- **VBS off.** Windows 11 runs a hypervisor inside your VM by default for
-  Memory Integrity. Nested virtualisation slows down everything. Turning it off
-  is the single biggest win here.
-- **Hyper-V enlightenments.** Paravirtualised timers, interrupts and
-  spinlocks, so Windows stops busy-waiting on things.
-- **60 fps compositing.** Windows caps RDP around 30 by default.
-- **H.264 AVC420.** Half the encoding work of 4:4:4, and you notice it most
-  when dragging objects.
-- **Office hardware acceleration off.** There's no GPU, so Office's Direct3D
-  path falls back to a software rasteriser that's slower than just drawing
-  normally.
-- **virtio networking**, 6 vCPUs, RDP over loopback.
-
-All of it applied for you. Most guides to running Office in a VM skip these,
-which is why this probably feels different from VMs you've tried before.
 
 ---
 
