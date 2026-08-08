@@ -16,7 +16,7 @@ Setup takes a single command, installing all dependencies within the project fol
 [![KVM](https://img.shields.io/badge/KVM%2FQEMU-no%20libvirt-success?style=flat-square)](#how-it-works)
 [![Stars](https://img.shields.io/github/stars/whitehole07/fast-msoffice-linux?style=flat-square&color=yellow)](https://github.com/whitehole07/fast-msoffice-linux/stargazers)
 
-[Get started](#get-started) · [Alternatives](#alternatives) · [Performance](#performance) · [Full guide](GUIDE.md)
+[Get started](#get-started) · [Performance](#performance) · [Alternatives](#alternatives) · [Full guide](GUIDE.md)
 
 <br>
 
