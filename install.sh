@@ -69,14 +69,17 @@ step "Checking for the Windows 11 ISO"
 if [ -n "${WIN_ISO:-}" ] && [ -f "$WIN_ISO" ]; then
     log "Found $(basename "$WIN_ISO")"
 else
-    die "No Windows 11 ISO found.
+    # Not automated on purpose. Microsoft issues only session-scoped, expiring
+    # links, and its anti-automation checks reject scripted requests with
+    # "SentinelReject" even given a full browser fingerprint. A downloader here
+    # would fail for everyone and bury this message under a stack trace.
+    die "No Windows 11 ISO found - this is the one manual step.
 
-  Download one (no product key or registration needed):
-    https://www.microsoft.com/software-download/windows11
-  choosing 'Windows 11 Disk Image (ISO) for x64 devices'.
+  1. Open  https://www.microsoft.com/software-download/windows11
+  2. Under 'Windows 11 Disk Image (ISO) for x64 devices', pick your language
+  3. Save the .iso into:  $ISO_DIR
 
-  Save it into:  $ISO_DIR
-  Then run ./install.sh again."
+  No product key, no account, no registration. Then run ./install.sh again."
 fi
 
 

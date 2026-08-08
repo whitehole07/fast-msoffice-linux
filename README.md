@@ -8,9 +8,15 @@ it stays completely invisible.
 Not a browser tab. Not a Windows desktop in a window. Not Wine.
 
 ```bash
-./install.sh      # one command: installs Windows and Office, unattended
+# one manual step: download a Windows 11 ISO into vm/iso/
+#   https://www.microsoft.com/software-download/windows11
+
+./install.sh      # installs Windows and Office, unattended
 ./powerpoint.sh   # a real PowerPoint window
 ```
+
+The ISO is the only thing you fetch yourself. Microsoft issues session-scoped
+links and rejects scripted requests, so no tool can reliably automate it.
 
 ## Fast
 
