@@ -18,6 +18,12 @@ The Windows VM doing the work never shows itself.
 
 [Get started](#get-started) · [Why bother](#why-bother) · [Speed](#speed) · [Full guide](GUIDE.md)
 
+<br>
+
+<img src="assets/screenshot.png" alt="PowerPoint and Excel running as native windows on Fedora" width="880">
+
+<sub>PowerPoint and Excel in the GNOME overview, each with its own icon. No Windows desktop anywhere.</sub>
+
 </div>
 
 ---
