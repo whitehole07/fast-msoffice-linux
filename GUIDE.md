@@ -1,7 +1,7 @@
 # Microsoft Office on Linux, properly
 
-Run Excel and PowerPoint on Linux as **real desktop windows** — own taskbar
-entry, own alt-tab slot, real Office icons — backed by a Windows VM that stays
+Run Excel and PowerPoint on Linux as **real desktop windows**, own taskbar
+entry, own alt-tab slot, real Office icons, backed by a Windows VM that stays
 invisible.
 
 Not a browser tab. Not a Windows desktop in a window. Not Wine.
@@ -18,18 +18,17 @@ Delete the folder and every trace is gone.
 
 ## Why this exists
 
-Office on Linux usually means compromises: Office Online is a browser tab,
-LibreOffice breaks complex `.pptx` formatting, and Wine cannot install
-Microsoft 365 at all — its Click-to-Run installer fails before it can even
-write a log. And PowerPoint add-ins hook deeply enough into the application -
-ribbon integration, COM automation - that only real Windows will run them.
+Office on Linux usually means picking a compromise. Office Online is a browser
+tab. LibreOffice mangles complicated `.pptx` files. Wine can't install
+Microsoft 365 at all, its Click-to-Run installer gives up before it even writes
+a log. And PowerPoint add-ins need real Windows, because ribbon integration and
+COM automation aren't things you can fake.
 
-A VM solves compatibility but normally costs you the desktop experience. This
-project closes that gap with **RemoteApp**: an RDP feature that streams a
-single application's window instead of a whole desktop. The VM runs headless in
-the background, and PowerPoint behaves like any other Linux app.
-
----
+A VM fixes compatibility but normally hands you a Windows desktop stuck inside
+a window, which is its own kind of annoying. RDP has a feature called RemoteApp
+that sends one application's window instead of the whole desktop, so that's
+what this uses. Windows runs headless in the background and PowerPoint behaves
+like any other app you have open.
 
 ## Requirements
 
@@ -41,7 +40,7 @@ the background, and PowerPoint behaves like any other Linux app.
 | Licence | A Microsoft 365 subscription, for Office |
 
 Windows itself needs **no licence key**. It installs and runs indefinitely
-unactivated — you get a watermark and locked personalization settings, and
+unactivated, you get a watermark and locked personalization settings, and
 nothing else is restricted. Office is licensed separately by your subscription.
 
 Packages (Fedora shown; the names are similar elsewhere):
@@ -90,7 +89,7 @@ Open PowerPoint and sign in with your Microsoft 365 account.
 > If it offers to let your organization manage the device, choose
 > **"No, sign in to this app only"**. Otherwise Windows tries to enrol this VM
 > into your employer's or university's device management, handing their IT
-> administrators control over it — and the enrolment often fails anyway.
+> administrators control over it, and the enrolment often fails anyway.
 
 ---
 
@@ -152,7 +151,7 @@ RDP_KBD=0x00000409 ./excel.sh   # force a US keyboard
 |---|---|---|
 | `VM_CPUS` | 6 | Compositing is CPU-bound; more cores means smoother |
 | `VM_RAM` | 8G | |
-| `DISK_SIZE` | 60G | Sparse — it only uses what it needs |
+| `DISK_SIZE` | 60G | Sparse, it only uses what it needs |
 | `RDP_GFX` | AVC420 | `AVC444` sharper, `RFX` older, `off` most compatible |
 | `RDP_KBD` | auto | Detected from your desktop |
 | `NIC_MODEL` | virtio-net-pci | `e1000e` if virtio drivers are missing |
@@ -173,7 +172,7 @@ RDP_KBD=0x00000409 ./excel.sh   # force a US keyboard
 - **KVM** runs Windows instructions directly on your CPU. Not emulation, so the
   speed penalty is small.
 - **QEMU** provides the virtual hardware. Invoked directly, with **no libvirt**
-  — libvirt would scatter VM state across `/etc/libvirt` and `/var/lib/libvirt`,
+ , libvirt would scatter VM state across `/etc/libvirt` and `/var/lib/libvirt`,
   breaking the "one folder" property.
 - **swtpm** emulates the TPM 2.0 chip Windows 11 demands.
 - **OVMF** is the UEFI firmware, with Secure Boot keys enrolled.
@@ -202,23 +201,23 @@ RDP_KBD=0x00000409 ./excel.sh   # force a US keyboard
 Editing feels essentially native. The tuning that gets it there is applied
 automatically:
 
-- **Virtualization-Based Security off** — Windows 11 runs a hypervisor *inside*
+- **Virtualization-Based Security off**, Windows 11 runs a hypervisor *inside*
   your VM by default for Memory Integrity. Nested virtualization taxes
   everything; this is the single biggest win.
-- **Hyper-V enlightenments** — paravirtualized timers, interrupts and
+- **Hyper-V enlightenments**, paravirtualized timers, interrupts and
   spinlocks, so Windows stops busy-waiting.
-- **60 fps compositing** — Windows caps RDP at ~30 fps by default.
-- **AVC420 (H.264)** — half the encode work of 4:4:4, which matters most during
+- **60 fps compositing**, Windows caps RDP at ~30 fps by default.
+- **AVC420 (H.264)**, half the encode work of 4:4:4, which matters most during
   continuous motion like dragging shapes.
-- **Office hardware acceleration off** — with no GPU, Office's Direct3D path
+- **Office hardware acceleration off**, with no GPU, Office's Direct3D path
   falls back to a software rasterizer that is *slower* than plain drawing.
-- **virtio networking** — lower latency than emulated hardware.
+- **virtio networking**, lower latency than emulated hardware.
 
 With all of it applied, editing, scrolling, dragging objects and slide
 animations feel like a local application.
 
 There is no GPU in the VM, so the desktop compositor renders on the CPU. In
-practice that has not been the limit — the tuning above matters far more. If
+practice that has not been the limit, the tuning above matters far more. If
 you ever do hit a ceiling on very heavy 3D content, the only real fix is GPU
 passthrough, which needs a second GPU.
 
