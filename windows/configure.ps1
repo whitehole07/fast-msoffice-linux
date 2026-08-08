@@ -84,4 +84,16 @@ if ($virtio) {
     Say "no virtio CD found, skipping drivers"
 }
 
+Say "Disabling the auto-logon used to run this script"
+# autounattend.xml signs this account in automatically so these commands can
+# run. Left enabled, Windows keeps a console session open forever, and every
+# RDP connection then has to ask permission to take it over - a prompt no
+# automated script can answer. Turning it off means the reboot below leaves the
+# machine at a login screen with no session, so RDP connects cleanly.
+$wl = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
+Set-ItemProperty -Path $wl -Name 'AutoAdminLogon' -Value '0' -Type String
+Remove-ItemProperty -Path $wl -Name 'DefaultPassword'  -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path $wl -Name 'AutoLogonCount'   -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path $wl -Name 'DefaultUserName'  -ErrorAction SilentlyContinue
+
 Say "Done. A reboot applies the security and driver changes."
