@@ -16,13 +16,13 @@ Setup takes a single command, installing all dependencies within the project fol
 [![KVM](https://img.shields.io/badge/KVM%2FQEMU-no%20libvirt-success?style=flat-square)](#how-it-works)
 [![Stars](https://img.shields.io/github/stars/whitehole07/fast-msoffice-linux?style=flat-square&color=yellow)](https://github.com/whitehole07/fast-msoffice-linux/stargazers)
 
-[Get started](#get-started) · [Why bother](#why-bother) · [Performance](#performance) · [Full guide](GUIDE.md)
+[Get started](#get-started) · [Alternatives](#alternatives) · [Performance](#performance) · [Full guide](GUIDE.md)
 
 <br>
 
 <img src="assets/screenshot.png" alt="PowerPoint and Excel running as native windows on Fedora" width="880">
 
-<sub>PowerPoint and Excel in the GNOME overview, each with its own icon. No Windows desktop anywhere.</sub>
+<sub>PowerPoint and Excel in the GNOME overview, each with its own icon.</sub>
 
 </div>
 
@@ -73,32 +73,22 @@ addressed during installation:
 None of it requires configuration. See [the guide](GUIDE.md#performance) for the
 reasoning behind each one.
 
-There is no GPU in the guest, so the desktop compositor renders in software.
-Editing, scrolling and animation are unaffected in practice. Switching between
-two open Office windows is slow, which is a
-[FreeRDP RemoteApp limitation](https://github.com/FreeRDP/FreeRDP/issues/12984)
-rather than a tuning problem.
-
 ---
 
-## Why bother
+## Alternatives
 
-Office on Linux usually means picking which compromise annoys you least:
+Each of the usual options gives something up:
 
 | | |
 |---|---|
-| Office Online | It's a browser tab |
-| LibreOffice | Complex `.pptx` files come out wrong |
-| Wine | Microsoft 365 won't even install. Click-to-Run dies before writing a log |
-| A plain VM | Works fine, but now you're using a Windows desktop inside a window |
+| Office Online | Browser only, reduced feature set |
+| LibreOffice | Complex `.pptx` formatting does not survive the round trip |
+| Wine | Microsoft 365 will not install. |
+| A plain VM | Works, but you are working inside a Windows desktop |
 
-And if you rely on a PowerPoint add-in, none of those help at all. Ribbon
-integration and COM automation need genuine Windows.
-
-So this uses a VM, but hides it. RDP has a feature called RemoteApp that sends
-a single application's window instead of the whole desktop. Windows runs
-headless in the background and Office just sits on your desktop like anything
-else.
+This uses RemoteApp, the RDP extension that publishes individual application
+windows rather than a full desktop. The VM runs headless and the applications
+appear as ordinary windows.
 
 ---
 
