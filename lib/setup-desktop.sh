@@ -148,23 +148,62 @@ PP+='application/vnd.ms-powerpoint.slideshow.macroEnabled.12;'
 # A thumbnailer, if one is installed for Office formats, produces previews and
 # those take precedence over any icon, so this shows up mostly on the formats
 # it does not handle.
+#
+# An icon is only claimed for a type this app actually opens. Putting the Excel
+# logo on a file that LibreOffice is going to open would be a plain lie about
+# what a double click does. Set the default in your file manager and run this
+# again to pick the icons up.
+CLAIMED=0
+SKIPPED=0
+
+# Read the choice you actually made, which the desktop records under
+# [Default Applications] in mimeapps.list.
+#
+# Deliberately not `xdg-mime query default`: that answers with the effective
+# default, and with no choice recorded it falls back to whichever application
+# claims the type first. Since these entries claim the Office formats, it
+# reports them as the default for files nobody has chosen them for, which is
+# the confusion this whole check exists to avoid.
+is_default_for() {
+    local mime="$1" want="m365-$2.desktop" got=""
+    got=$(awk -F= -v m="$mime" '
+        /^\[Default Applications\]/ {f=1; next}
+        /^\[/                       {f=0}
+        f && $1 == m                {print $2; exit}
+    ' "${XDG_CONFIG_HOME:-$HOME/.config}/mimeapps.list" 2>/dev/null || true)
+
+    # The value can be a list of fallbacks, so match a whole entry in it.
+    case ";${got//[[:space:]]/};" in *";$want;"*) return 0 ;; esac
+    return 1
+}
+
 link_mime_icons() {
     local id="$1" mimes="$2"
     local src="$PROJECT_DIR/icons/${id}.png"
     # Placeholder icons are stock theme names, not files, and nothing to link.
     [ -f "$src" ] || return 0
     local dir mime
-    for dir in "${ICON_DIRS[@]}"; do
-        mkdir -p "$dir"
-        while IFS= read -r mime; do
-            [ -n "$mime" ] || continue
+    while IFS= read -r mime; do
+        [ -n "$mime" ] || continue
+        if ! is_default_for "$mime" "$id"; then
+            SKIPPED=$((SKIPPED + 1))
+            continue
+        fi
+        for dir in "${ICON_DIRS[@]}"; do
+            mkdir -p "$dir"
             ln -sfn "$src" "$dir/${mime//\//-}.png"
-        done < <(printf '%s' "$mimes" | tr ';' '\n')
-    done
+        done
+        CLAIMED=$((CLAIMED + 1))
+    done < <(printf '%s' "$mimes" | tr ';' '\n')
 }
 
 write_entry powerpoint PowerPoint "Presentations (Windows VM)" "presentation;slides;office;microsoft;" presentation "$PP"
 write_entry excel      Excel      "Spreadsheets (Windows VM)"  "spreadsheet;office;microsoft;"          spreadsheet "$XL"
+
+# Start from nothing so a type you have since handed back to another
+# application loses its icon here too.
+[ -d "$ICONS_ROOT" ] &&
+    find "$ICONS_ROOT" -type l -lname "$PROJECT_DIR/*" -delete 2>/dev/null || true
 
 link_mime_icons powerpoint "$PP"
 link_mime_icons excel      "$XL"
@@ -173,6 +212,12 @@ refresh_caches
 
 if [ "$QUIET" -eq 0 ]; then
     log "Added Excel and PowerPoint to your application menu"
+    if [ "$CLAIMED" -gt 0 ]; then
+        log "Office icons on $CLAIMED file type(s) these apps open by default"
+    fi
+    if [ "$SKIPPED" -gt 0 ]; then
+        log "$SKIPPED type(s) left alone, another application opens them. Make Excel or PowerPoint the default and run this again to give those files the Office icon"
+    fi
     [ -f "$PROJECT_DIR/icons/powerpoint.png" ] \
         || warn "Using placeholder icons - run ./finish-setup.sh once Office is installed to get the real ones"
 fi

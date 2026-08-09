@@ -150,13 +150,18 @@ manager. Icons come from the file type rather than from whichever application
 opens it, so this is separate from the default-application setting and works
 either way.
 
-Two things decide whether you actually see them. A thumbnailer, and Fedora
-ships one for `.xlsx`, `.pptx`, `.xls` and `.ppt`, draws a preview of the
-document instead, and a preview always wins over an icon. On the formats it
-does not cover the icon shows. The icons are also installed into whichever
-icon theme is in use, because a desktop searches its whole active theme, where
-it finds the generic office icon, before it ever looks anywhere else. Change
-your icon theme and this needs running again:
+An icon is only claimed for a file type you have actually made Excel or
+PowerPoint the default for. Putting the Excel logo on a spreadsheet that
+LibreOffice is going to open would say something untrue about what a double
+click does, so those are left alone. Setting the default is a file manager
+thing and nothing here notices it happening, so run this again afterwards.
+
+Two more things decide whether you then see the icon. A thumbnailer, and
+Fedora ships one for `.xlsx`, `.pptx`, `.xls` and `.ppt`, draws a preview of
+the document instead, and a preview always wins. And the icons install into
+whichever icon theme is in use, because a desktop searches its whole active
+theme, where it finds the generic office icon, before it looks anywhere else.
+Change your icon theme and this needs running again too:
 
 ```bash
 ./lib/setup-desktop.sh
