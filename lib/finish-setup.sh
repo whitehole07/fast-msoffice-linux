@@ -19,7 +19,11 @@ OFFICE='C:\Program Files\Microsoft Office\root\Office16'
 # --- make sure the VM is up ------------------------------------------------
 if ! pgrep -f 'qemu-system-x86_6[4]' >/dev/null 2>&1; then
     log "Starting the VM"
-    "$PROJECT_DIR/vm.sh" headless >/dev/null 2>&1 &
+    # No idle watcher for this one. Setup connects in bursts with long gaps in
+    # between, and Office may still be installing itself, so a VM that looks
+    # idle from the outside is in the middle of work. Stop it with ./vm.sh stop
+    # when setup is done, or let the next app launch adopt a watched VM.
+    VM_IDLE_TIMEOUT=0 "$PROJECT_DIR/vm.sh" headless >/dev/null 2>&1 &
 fi
 
 log "Waiting for Windows"

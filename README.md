@@ -113,8 +113,10 @@ rm -rf fast-msoffice-linux        # Windows, Office, the VM, gone
 | `./vm.sh start` · `headless` · `stop` · `status` | Control the VM |
 | `./lib/setup-desktop.sh --remove` | Remove the menu entries |
 
-Launching an app starts the VM if it isn't already up. Your home directory is
-mounted inside Windows, so your files stay where they are.
+Launching an app starts the VM if it isn't already up, and closing the last
+window shuts it down again a quarter of an hour later, so it is not holding
+memory while you are doing something else. Your home directory is mounted
+inside Windows, so your files stay where they are.
 
 ---
 

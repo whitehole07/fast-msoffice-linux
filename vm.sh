@@ -127,6 +127,13 @@ fi
 
 log "Starting VM (${VM_CPUS} vCPU, ${VM_RAM} RAM), RDP on localhost:${RDP_PORT}"
 
+# Headless means an application launcher started this, so nothing is watching
+# the VM. Hand it to the idle watcher, which shuts it down once every Office
+# window is closed. It outlives the exec below and reports to vm/idle-stop.log.
+if [ "$MODE" = "headless" ] && [ "${VM_IDLE_TIMEOUT:-0}" -gt 0 ]; then
+    setsid "$PROJECT_DIR/lib/idle-stop.sh" >/dev/null 2>&1 &
+fi
+
 # q35 + smm=on + the secure pflash global are what Secure Boot requires.
 # The disk is AHCI and the NIC defaults to virtio-net once its driver is in;
 # during installation e1000e is used because Windows has that driver built in.

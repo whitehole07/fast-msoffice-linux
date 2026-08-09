@@ -103,12 +103,20 @@ Open PowerPoint and sign in with your Microsoft 365 account.
 The VM starts automatically if it isn't running. First launch of the day waits
 for Windows to boot (~30s); after that it's instant.
 
+Closing the last Office window leaves the VM with nothing to do, so it shuts
+itself down 15 minutes later and gives back its 8 GB. The next launch starts it
+again, so this only ever costs you the boot wait. Raise `VM_IDLE_TIMEOUT` to
+keep it warm for longer, or set it to `0` to leave it up until you say
+otherwise:
+
 ```bash
-./vm.sh stop        # shut the VM down when you're done
+./vm.sh stop        # shut the VM down now
 ```
 
-Leaving it running costs 8 GB of RAM but makes launches instant. It uses almost
-no CPU when idle.
+The countdown only runs on a VM started by an application launcher. `./vm.sh
+start` opens a window because you asked for one, and is left alone. Nothing is
+closed underneath you either: a document with unsaved changes blocks the
+shutdown, and the VM stays up until you deal with it.
 
 | Command | Purpose |
 |---|---|
@@ -155,6 +163,8 @@ RDP_KBD=0x00000409 ./excel.sh   # force a US keyboard
 | `RDP_GFX` | AVC420 | `AVC444` sharper, `RFX` older, `off` most compatible |
 | `RDP_KBD` | auto | Detected from your desktop |
 | `NIC_MODEL` | virtio-net-pci | `e1000e` if virtio drivers are missing |
+| `VM_IDLE_TIMEOUT` | 900 | Seconds with no window open before shutdown, `0` never |
+| `VM_IDLE_GRACE` | 300 | Seconds to allow for booting before the timeout applies |
 
 ---
 
@@ -187,6 +197,7 @@ RDP_KBD=0x00000409 ./excel.sh   # force a US keyboard
 | `install.sh` | One-command preparation |
 | `vm.sh` | Start, stop and status for the VM |
 | `lib/rdp-app.sh` | Publishes a single app; starts the VM if needed |
+| `lib/idle-stop.sh` | Shuts the VM down once no application is open |
 | `lib/finish-setup.sh` | Post-install: icons, menu entries, virtio |
 | `lib/extract-icons.py` | Reads icons out of Windows PE resources |
 | `lib/window-icons.sh` | Gives each Office window the right icon in alt-tab |

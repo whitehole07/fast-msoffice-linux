@@ -68,6 +68,17 @@ NIC_MODEL="${NIC_MODEL:-virtio-net-pci}"
 RDP_PORT="${RDP_PORT:-13389}"
 RDP_USER="${RDP_USER:-office}"
 
+# Shut the VM down after this many seconds with no application open, so a VM
+# started by clicking PowerPoint does not sit there holding 8GB for the rest of
+# the day. The launchers start it again on demand, so this is invisible in use.
+# Set VM_IDLE_TIMEOUT=0 to leave the VM running until you stop it yourself.
+#
+# The grace period covers the 40 to 60 seconds a cold boot takes before the
+# first client can connect, and a launch that fails before any client appears.
+# Only headless VMs are watched: `./vm.sh start` opens a window on purpose.
+VM_IDLE_TIMEOUT="${VM_IDLE_TIMEOUT:-900}"
+VM_IDLE_GRACE="${VM_IDLE_GRACE:-300}"
+
 # Keyboard layout announced to Windows.
 #
 # This cannot be left to FreeRDP's own detection: it reads the X11 keymap, and
