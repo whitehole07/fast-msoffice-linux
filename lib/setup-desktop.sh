@@ -9,7 +9,7 @@
 # --remove deletes all of them:
 #   ~/.local/share/applications        two small .desktop files, the only place
 #                                      a Linux desktop looks for menu entries
-#   ~/.local/share/icons/hicolor/...   symlinks pointing back at icons/ here, so
+#   ~/.local/share/icons/<theme>/...   symlinks pointing back at icons/ here, so
 #                                      spreadsheets and decks get the Office
 #                                      icon in the file manager
 #
@@ -17,23 +17,61 @@ set -euo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/env.sh"
 
 APPS_DIR="${APPS_DIR:-$HOME/.local/share/applications}"
-ICON_THEME_DIR="${ICON_THEME_DIR:-$HOME/.local/share/icons/hicolor}"
-MIME_ICON_DIR="$ICON_THEME_DIR/256x256/mimetypes"
+ICONS_ROOT="${ICONS_ROOT:-$HOME/.local/share/icons}"
 QUIET=0
 if [ "${1:-}" = "--quiet" ]; then QUIET=1; fi
 
+# Which icon theme is actually in use. An icon has to be installed into that
+# theme to be seen: a file type asks for a specific name first and a generic one
+# second, and the desktop searches the whole active theme before falling back to
+# hicolor. Adwaita answers the generic name, so an icon left only in hicolor
+# never gets reached. Change your icon theme and this needs running again.
+current_icon_theme() {
+    local t=""
+    command -v gsettings >/dev/null 2>&1 &&
+        t=$(gsettings get org.gnome.desktop.interface icon-theme 2>/dev/null | tr -d "'")
+    printf '%s' "${t:-hicolor}"
+}
+
+# A theme only searches the directories its index.theme lists, so pick one of
+# those rather than inventing a path. Scalable holds any size; failing that,
+# take the largest pixel directory the theme declares.
+theme_mimetype_dir() {
+    local theme="$1" index="" base dirs d
+    for base in "$ICONS_ROOT" /usr/share/icons /usr/local/share/icons; do
+        [ -f "$base/$theme/index.theme" ] && { index="$base/$theme/index.theme"; break; }
+    done
+    [ -n "$index" ] || { printf '256x256/mimetypes'; return; }
+
+    dirs=$(grep -m1 '^Directories=' "$index" | sed 's/^Directories=//' \
+           | tr ',' '\n' | grep '/mimetypes$' || true)
+    d=$(printf '%s\n' "$dirs" | grep '^scalable/' | head -1 || true)
+    [ -n "$d" ] || d=$(printf '%s\n' "$dirs" | grep -E '^[0-9]+x' | sort -t x -k1 -n | tail -1 || true)
+    printf '%s' "${d:-256x256/mimetypes}"
+}
+
+THEME="$(current_icon_theme)"
+ICON_DIRS=("$ICONS_ROOT/hicolor/256x256/mimetypes")
+[ "$THEME" = "hicolor" ] || ICON_DIRS+=("$ICONS_ROOT/$THEME/$(theme_mimetype_dir "$THEME")")
+
 refresh_caches() {
     command -v update-desktop-database >/dev/null && update-desktop-database "$APPS_DIR" 2>/dev/null || true
-    command -v gtk-update-icon-cache >/dev/null &&
-        gtk-update-icon-cache -qtf "$ICON_THEME_DIR" 2>/dev/null || true
+    if command -v gtk-update-icon-cache >/dev/null; then
+        local d
+        for d in "$ICONS_ROOT/hicolor" "$ICONS_ROOT/$THEME"; do
+            [ -d "$d" ] && gtk-update-icon-cache -qtf "$d" 2>/dev/null || true
+        done
+    fi
 }
 
 if [ "${1:-}" = "--remove" ]; then
     rm -f "$APPS_DIR"/m365-*.desktop
-    # Only ours: symlinks in that directory that point back into this project.
-    # Anything else there belongs to some other application.
-    [ -d "$MIME_ICON_DIR" ] &&
-        find "$MIME_ICON_DIR" -maxdepth 1 -type l -lname "$PROJECT_DIR/*" -delete 2>/dev/null || true
+    # Only ours: symlinks anywhere under the icon directory that point back into
+    # this project. Anything else there belongs to another application, and
+    # searching the whole tree also catches icons left in a theme you have since
+    # stopped using.
+    [ -d "$ICONS_ROOT" ] &&
+        find "$ICONS_ROOT" -type l -lname "$PROJECT_DIR/*" -delete 2>/dev/null || true
     refresh_caches
     log "Removed the application menu entries and file icons"
     exit 0
@@ -102,21 +140,27 @@ PP+='application/vnd.ms-powerpoint.slideshow.macroEnabled.12;'
 # The theme looks for an icon named after the MIME type with the slash turned
 # into a dash, so linking the real Office icons under those names is all it
 # takes. They are symlinks, not copies, so the only real files still live in
-# this project folder. 256x256 is the size the icons were extracted at.
+# this project folder.
 #
-# A thumbnailer, if one is installed for Office formats, produces slide
-# previews and those take precedence over any of this.
+# They go into both the active theme and hicolor: the active theme is what
+# actually gets read, hicolor is there for whatever you switch to next.
+#
+# A thumbnailer, if one is installed for Office formats, produces previews and
+# those take precedence over any icon, so this shows up mostly on the formats
+# it does not handle.
 link_mime_icons() {
     local id="$1" mimes="$2"
     local src="$PROJECT_DIR/icons/${id}.png"
     # Placeholder icons are stock theme names, not files, and nothing to link.
     [ -f "$src" ] || return 0
-    mkdir -p "$MIME_ICON_DIR"
-    local mime
-    while IFS= read -r mime; do
-        [ -n "$mime" ] || continue
-        ln -sfn "$src" "$MIME_ICON_DIR/${mime//\//-}.png"
-    done < <(printf '%s' "$mimes" | tr ';' '\n')
+    local dir mime
+    for dir in "${ICON_DIRS[@]}"; do
+        mkdir -p "$dir"
+        while IFS= read -r mime; do
+            [ -n "$mime" ] || continue
+            ln -sfn "$src" "$dir/${mime//\//-}.png"
+        done < <(printf '%s' "$mimes" | tr ';' '\n')
+    done
 }
 
 write_entry powerpoint PowerPoint "Presentations (Windows VM)" "presentation;slides;office;microsoft;" presentation "$PP"

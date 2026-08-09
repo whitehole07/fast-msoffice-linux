@@ -148,8 +148,20 @@ the desktop rather than failing quietly.
 Spreadsheets and presentations also get the real Office icons in the file
 manager. Icons come from the file type rather than from whichever application
 opens it, so this is separate from the default-application setting and works
-either way. A thumbnailer, if you have one for these formats, shows slide
-previews instead and takes precedence.
+either way.
+
+Two things decide whether you actually see them. A thumbnailer, and Fedora
+ships one for `.xlsx`, `.pptx`, `.xls` and `.ppt`, draws a preview of the
+document instead, and a preview always wins over an icon. On the formats it
+does not cover the icon shows. The icons are also installed into whichever
+icon theme is in use, because a desktop searches its whole active theme, where
+it finds the generic office icon, before it ever looks anywhere else. Change
+your icon theme and this needs running again:
+
+```bash
+./lib/setup-desktop.sh
+nautilus -q     # the file manager caches icons at startup
+```
 
 ### Other Windows apps
 
