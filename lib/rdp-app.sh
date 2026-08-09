@@ -28,6 +28,42 @@ shift || true
 APP_BASE="$(basename "${APP//\\//}")"
 APP_NAME="${APP_NAME:-${APP_BASE%.*}}"
 
+# --- a document to open, if we were handed one ------------------------------
+# The desktop entries pass %f, so double-clicking a spreadsheet arrives here as
+# an ordinary Linux path. Windows sees your home directory as \\tsclient\linux,
+# the same share lib/finish-setup.sh copies icons through, so the file needs
+# translating rather than copying.
+#
+# Anything outside your home directory is genuinely not reachable from inside
+# Windows, and a launch from a file manager has no terminal to print to, so say
+# so on the desktop instead of failing silently.
+refuse() {
+    warn "$1"
+    command -v notify-send >/dev/null 2>&1 &&
+        notify-send -a "$APP_NAME" -i dialog-error -t 8000 "$APP_NAME" "$1" 2>/dev/null
+    exit 1
+}
+
+DOC=""
+if [ "${1:-}" ] && [ -e "$1" ]; then
+    DOC="$(readlink -f "$1")"
+    shift
+
+    case "$DOC" in
+        "$HOME"/*) ;;
+        *) refuse "Only files in your home folder can be opened. Windows cannot see $DOC" ;;
+    esac
+
+    # /app: takes comma separated options, so a comma in the name would be read
+    # as the start of another one. FreeRDP offers no escape for it.
+    case "$DOC" in
+        *,*) refuse "Rename the file without a comma. Remote Desktop cannot pass a name containing one" ;;
+    esac
+
+    WIN_DOC='\\tsclient\linux'"${DOC#"$HOME"}"
+    WIN_DOC="${WIN_DOC//\//\\}"
+fi
+
 # Start the VM headless if it is not already running.
 if ! pgrep -f 'qemu-system-x86_6[4]' >/dev/null 2>&1; then
     log "Starting Windows in the background - about a minute the first time"
@@ -62,4 +98,20 @@ fi
 # of them. This watcher corrects each window from its title, and exits with us.
 "$PROJECT_DIR/lib/window-icons.sh" $$ >/dev/null 2>&1 &
 
-rdp_run /app:program:"$APP",name:"$APP_NAME" /wm-class:"$APP_NAME" "$@"
+# cmd: is the RemoteApp command line, so the document arrives as the argument
+# Office would have received had it been started with the file on Windows.
+#
+# A name containing spaces has to reach Windows quoted or the application reads
+# it as several arguments. FreeRDP's option parser does not really support
+# quotes here and logs "Invalid quoted argument", but passes them through, and
+# the file does open. Names without spaces need none of that, so they take the
+# quiet path, which is nearly all of them.
+APP_OPT="/app:program:$APP,name:$APP_NAME"
+if [ -n "$DOC" ]; then
+    case "$WIN_DOC" in
+        *" "*) APP_OPT="$APP_OPT,cmd:\"$WIN_DOC\"" ;;
+        *)     APP_OPT="$APP_OPT,cmd:$WIN_DOC" ;;
+    esac
+fi
+
+rdp_run "$APP_OPT" /wm-class:"$APP_NAME" "$@"

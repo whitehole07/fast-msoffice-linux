@@ -134,6 +134,23 @@ Your Linux home is mounted inside Windows as `\\tsclient\linux`, so Office can
 open and save files that live on the Linux side. Documents stay where they are;
 nothing is trapped in the VM.
 
+Double-clicking works too. Excel and PowerPoint appear under "Open With" for
+the formats they own, and can be set as the default for them. The path is
+translated on the way in, so Office opens the file where it already lives
+rather than a copy. `configure.ps1` marks the share as trusted, without which
+Office would treat it as a network location and open everything read only.
+
+Two limits. A file has to be somewhere under your home directory, because that
+is the only thing Windows can see, and a file name cannot contain a comma,
+which Remote Desktop uses to separate the arguments it sends. Both say so on
+the desktop rather than failing quietly.
+
+Spreadsheets and presentations also get the real Office icons in the file
+manager. Icons come from the file type rather than from whichever application
+opens it, so this is separate from the default-application setting and works
+either way. A thumbnailer, if you have one for these formats, shows slide
+previews instead and takes precedence.
+
 ### Other Windows apps
 
 ```bash
@@ -297,14 +314,16 @@ acceleration` is ticked in Office.
 ## Uninstalling
 
 ```bash
-./lib/setup-desktop.sh --remove     # the two application menu entries
-rm -rf ~/Documents/Projects/M365-office
+./lib/setup-desktop.sh --remove     # menu entries and file icons
+rm -rf ~/Documents/Projects/fast-msoffice-linux
 ```
 
-That's everything: Windows, Office, the VM and all its state. The only files
-this project ever writes outside its own folder are those two `.desktop`
-entries, because an application menu is the one thing that cannot live in a
-project directory.
+That's everything: Windows, Office, the VM and all its state. Outside its own
+folder this project writes two `.desktop` entries and a handful of icon
+symlinks pointing back here, because an application menu and an icon theme are
+the two things that cannot live in a project directory. `--remove` deletes
+them, and the icons are links rather than copies, so nothing of them is left
+behind either way.
 
 ---
 

@@ -118,6 +118,10 @@ window shuts it down again a quarter of an hour later, so it is not holding
 memory while you are doing something else. Your home directory is mounted
 inside Windows, so your files stay where they are.
 
+Double-clicking a spreadsheet or a deck works as well: both apps show up under
+"Open With", can be made the default, and the files carry the Office icon in
+your file manager.
+
 ---
 
 ## How it works

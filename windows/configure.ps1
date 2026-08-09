@@ -73,6 +73,21 @@ New-Item -Path $gfx -Force | Out-Null
 Set-ItemProperty -Path $gfx -Name DisableHardwareAcceleration -Value 1 -Type DWord
 Set-ItemProperty -Path $gfx -Name DisableAnimations -Value 1 -Type DWord
 
+Say "Trusting the redirected Linux home so documents do not open read only"
+# Files opened from Linux arrive over \\tsclient\linux, which Office treats as
+# an untrusted network location and opens in Protected View. That is the right
+# default for a share on someone else's network; this one is your own home
+# directory, one process away on the same machine.
+foreach ($app in 'Excel', 'PowerPoint') {
+    $tl = "HKCU:\Software\Microsoft\Office\16.0\$app\Security\Trusted Locations"
+    New-Item -Path $tl -Force | Out-Null
+    Set-ItemProperty -Path $tl -Name AllowNetworkLocations -Value 1 -Type DWord
+    New-Item -Path "$tl\LocationLinuxHome" -Force | Out-Null
+    Set-ItemProperty -Path "$tl\LocationLinuxHome" -Name Path -Value '\\tsclient\linux' -Type String
+    Set-ItemProperty -Path "$tl\LocationLinuxHome" -Name AllowSubFolders -Value 1 -Type DWord
+    Set-ItemProperty -Path "$tl\LocationLinuxHome" -Name Description -Value 'Redirected Linux home' -Type String
+}
+
 Say "Installing virtio drivers if the driver CD is present"
 # Pre-installing NetKVM lets the host switch the NIC to virtio-net later
 # without the VM losing its network.
